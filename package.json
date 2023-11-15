@@ -1,0 +1,32 @@
+{
+  "name": "dpager",
+  "version": "1.0.0",
+  "description": "Discord.js Pager",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "/dist"
+  ],
+  "scripts": {
+    "test": "mocha src/index.test.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/fyleto/dpager.git"
+  },
+  "keywords": [
+    "discord.js",
+    "pagination",
+    "pager"
+  ],
+  "author": "YetNT",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/fyleto/dpager/issues"
+  },
+  "homepage": "https://github.com/fyleto/dpager#readme",
+  "devDependencies": {
+    "@types/node": "^20.9.0",
+    "typescript": "^5.2.2"
+  }
+}
