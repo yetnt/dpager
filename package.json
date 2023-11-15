@@ -27,6 +27,11 @@
   "homepage": "https://github.com/fyleto/dpager#readme",
   "devDependencies": {
     "@types/node": "^20.9.0",
+    "discord.js": "^14.14.1",
     "typescript": "^5.2.2"
+  },
+  "dependencies": {
+    "expect.js": "^0.3.1",
+    "mocha": "^10.2.0"
   }
 }
