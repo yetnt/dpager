@@ -1,6 +1,7 @@
-import { Interaction, ButtonBuilder, ButtonStyle } from "discord.js";
-
-interface Page {
+import {
+    ButtonStyle,
+ ButtonBuilder, EmbedBuilder, ActionRowBuilder,Colors} from "discord.js";
+class Page {
     /**
      * Title of the page. Will default to embed title if not given
      */
@@ -8,7 +9,30 @@ interface Page {
     /**
      * Content of the page.
      */
-    content: string;
+    _content: string;
+    /**
+     * Color of the embed's page.
+     */
+    color?: number;
+    embed: EmbedBuilder;
+
+    constructor(o: { title?: string; content: string; color?: number }) {
+        this.title = o.title !== undefined ? o.title : "title";
+        this.content = o.content;
+        this.color = o.color !== undefined ? o.color : Colors.Blue;
+    }
+
+    set content(i: string) {
+        this._content = i;
+        this.embed = new EmbedBuilder()
+            .setTitle(this.title)
+            .setDescription(this._content);
+        if (this.color !== undefined) this.embed.setColor(this.color);
+    }
+
+    get content() {
+        return this._content;
+    }
 }
 
 interface PagerButton {
@@ -19,6 +43,7 @@ interface PagerButton {
     style?: ButtonStyle;
     label?: string;
     emoji?: string;
+    disabled: boolean;
 }
 
 /**
@@ -35,12 +60,12 @@ const type = (arr: any[]): 0 | 1 | 2 =>
             : 0
         : 0;
 type keys = "prevPage" | "nextPage" | "nextMaxPage" | "prevMaxPage";
-export class Pager {
+export class Pager{
     /**
      * Array of pages. to access a page just use Pager.pages[index]
      */
     pages: Page[] = [];
-    private interaction?: Interaction;
+    index: number = 0;
     private _ids = {
         nextPage: "pageNextPage",
         prevPage: "pevPage",
@@ -48,40 +73,36 @@ export class Pager {
         prevMaxPage: "prevMaxPage",
     };
     private buttons: {
-        nextPage?: PagerButton;
-        prevPage?: PagerButton;
-        nextMaxPage?: PagerButton;
-        prevMaxPage?: PagerButton;
+        nextPage: PagerButton;
+        prevPage: PagerButton;
+        nextMaxPage: PagerButton;
+        prevMaxPage: PagerButton;
     } = {
-        nextPage: {
-            customId: this._ids.nextPage,
-            label: ">",
+        prevMaxPage: {
+            customId: this._ids.prevMaxPage,
+            label: "<<",
             style: ButtonStyle.Success,
+            disabled: true,
         },
         prevPage: {
             customId: this._ids.prevPage,
             label: "<",
             style: ButtonStyle.Success,
+            disabled: true,
+        },
+        nextPage: {
+            customId: this._ids.nextPage,
+            label: ">",
+            style: ButtonStyle.Success,
+            disabled: false,
         },
         nextMaxPage: {
             customId: this._ids.nextMaxPage,
             label: ">>",
             style: ButtonStyle.Success,
-        },
-        prevMaxPage: {
-            customId: this._ids.prevMaxPage,
-            label: "<<",
-            style: ButtonStyle.Success,
+            disabled: false,
         },
     };
-
-    /**
-     * Create the pager.
-     * @param I If you plan on using the Pager to display the pages. pass the interaction here.
-     */
-    constructor(I?: Interaction) {
-        this.interaction = I;
-    }
 
     config(i: {
         nextPage?: PagerButton;
@@ -129,13 +150,15 @@ export class Pager {
 
     addPage(T: Page | string): void {
         if (typeof T === "string") {
-            let page: Page = { title: undefined, content: T };
+            let page = new Page({ title: undefined, content: T });
             this.pages.push(page);
         } else {
-            this.pages.push({
-                title: T.title || undefined,
-                content: T.content,
-            });
+            this.pages.push(
+                new Page({
+                    title: T.title || undefined,
+                    content: T.content,
+                })
+            );
         }
     }
 
@@ -153,15 +176,19 @@ export class Pager {
     addPages(...T: Page[] | string[]): void {
         if (type(T) === 1) {
             for (const content of T as string[]) {
-                this.pages.push({ title: undefined, content: content });
+                this.pages.push(
+                    new Page({ title: undefined, content: content })
+                );
             }
         } else {
             let pages: Page[];
             for (const page of T as Page[]) {
-                this.pages.push({
-                    title: page.title || undefined,
-                    content: page.content,
-                });
+                this.pages.push(
+                    new Page({
+                        title: page.title || undefined,
+                        content: page.content,
+                    })
+                );
             }
         }
     }
@@ -185,11 +212,76 @@ export class Pager {
         maxContentPerPage: number,
         separator?: string
     ): void {
-        separator = separator !== undefined ? separator : "\n"
+        separator = separator !== undefined ? separator : "\n";
         for (let i = 0; i < array.length; i += maxContentPerPage) {
             const slicedArray = array.slice(i, i + maxContentPerPage);
             const content = slicedArray.join(separator);
-            this.addPage({ content });
+            this.addPage(new Page({ content }));
         }
+    }
+
+    private async changeButtons() {
+        if (this.index == 0) {
+            this.buttons.prevMaxPage.disabled = true;
+            this.buttons.prevPage.disabled = true;
+        } else {
+            this.buttons.prevMaxPage.disabled = false;
+            this.buttons.prevPage.disabled = false;
+        }
+
+        if (this.index + 1 == this.pages.length) {
+            this.buttons.nextMaxPage.disabled = true;
+            this.buttons.nextPage.disabled = true;
+        } else {
+            this.buttons.nextMaxPage.disabled = false;
+            this.buttons.nextPage.disabled = false;
+        }
+    }
+
+    private async buildButtons(): Promise<ActionRowBuilder> {
+        await this.changeButtons();
+        let buttons: ButtonBuilder[] = [];
+        const iterate = Object.values(this.buttons);
+        for (const button of iterate) {
+            let a = new ButtonBuilder()
+                .setCustomId(button.customId)
+                .setLabel(button.label)
+                .setStyle(button.style)
+                .setDisabled(button.disabled);
+
+            if (button.emoji !== undefined) a.setEmoji(button.emoji);
+            buttons.push(a);
+        }
+        return new ActionRowBuilder().addComponents(...buttons);
+    }
+
+    /**
+     * Display current page.
+     * @param customId CustomId from the message component collector
+     * @returns
+     */
+    async currentPage(customId?: string) {
+        switch (customId) {
+            case this._ids.prevMaxPage:
+                this.index = 0;
+                break;
+            case this._ids.prevPage:
+                this.index--;
+                break;
+            case this._ids.nextPage:
+                this.index++;
+                break;
+            case this._ids.nextMaxPage:
+                this.index = this.pages.length - 1;
+                break;
+            default:
+                break;
+        }
+        let c = await this.buildButtons();
+
+        return {
+            embeds: [this.pages[this.index].embed],
+            components: [c],
+        };
     }
 }
