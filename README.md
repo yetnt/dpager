@@ -238,4 +238,5 @@ collector.on("collect", async (i) => {
 });
 ```
 
-![gif](./export.git)
+_Do not mind my chromebook's bad quality_
+<img src="./export.gif" />
