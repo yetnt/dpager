@@ -67,15 +67,19 @@ const type = (arr: any[]): 0 | 1 | 2 =>
             : 0
         : 0;
 export class Pager {
+    constructor(title?: string) {
+        this.defaultTitle = title !== undefined ? title : "Pages";
+    }
+    private defaultTitle: string;
     /**
      * Array of pages. to access a page just use Pager.pages[index]
      */
     pages: Page[] = [];
     index: number = 0;
     private _ids = {
-        nextPage: "pageNextPage",
-        prevPage: "pevPage",
-        nextMaxPage: "nextMaxpage",
+        nextPage: "nextPage",
+        prevPage: "prevPage",
+        nextMaxPage: "nextMaxPage",
         prevMaxPage: "prevMaxPage",
     };
     private buttons: {
@@ -132,12 +136,12 @@ export class Pager {
          */
         prevMaxPage?: PagerButton;
     }): void {
-        function updateButton(
+        const updateButton = (
             buttonType: "prevPage" | "nextPage" | "nextMaxPage" | "prevMaxPage",
             input: {
                 [key: string]: PagerButton;
             }
-        ) {
+        ) => {
             if (i[buttonType]) {
                 this.buttons[buttonType].emoji =
                     input[buttonType]?.emoji !== undefined
@@ -152,7 +156,7 @@ export class Pager {
                         ? input[buttonType].style
                         : this.buttons[buttonType].style;
             }
-        }
+        };
         updateButton("prevPage", i);
         updateButton("nextPage", i);
         updateButton("nextMaxPage", i);
@@ -172,12 +176,12 @@ export class Pager {
 
     addPage(T: Page | string): void {
         if (typeof T === "string") {
-            let page = new Page({ title: undefined, content: T });
+            let page = new Page({ title: this.defaultTitle, content: T });
             this.pages.push(page);
         } else {
             this.pages.push(
                 new Page({
-                    title: T.title || undefined,
+                    title: T.title || this.defaultTitle,
                     content: T.content,
                 })
             );
@@ -199,7 +203,7 @@ export class Pager {
         if (type(T) === 1) {
             for (const content of T as string[]) {
                 this.pages.push(
-                    new Page({ title: undefined, content: content })
+                    new Page({ title: this.defaultTitle, content: content })
                 );
             }
         } else {
@@ -207,7 +211,7 @@ export class Pager {
             for (const page of T as Page[]) {
                 this.pages.push(
                     new Page({
-                        title: page.title || undefined,
+                        title: page.title || this.defaultTitle,
                         content: page.content,
                     })
                 );
@@ -238,7 +242,7 @@ export class Pager {
         for (let i = 0; i < array.length; i += maxContentPerPage) {
             const slicedArray = array.slice(i, i + maxContentPerPage);
             const content = slicedArray.join(separator);
-            this.addPage(new Page({ content }));
+            this.addPage(new Page({ title: this.defaultTitle, content }));
         }
     }
 
@@ -278,8 +282,8 @@ export class Pager {
     }
 
     /**
-     * Display current page.
-     * @param customId CustomId from the message component collector
+     * Displays current page. And if given a customId (one of the buttons) will change depending on it.
+     * @param customId Button's customId
      * @returns
      */
     async currentPage(customId?: string) {
@@ -302,7 +306,26 @@ export class Pager {
         let c = await this.buildButtons();
 
         return {
-            embeds: [this.pages[this.index].embed],
+            /**
+             * Embed made by the code
+             */
+            embed: this.pages[this.index].embed,
+            /**
+             * The raw page if you'd like to make the embed yourself
+             */
+            raw: {
+                /**
+                 * The page's contents
+                 */
+                content: this.pages[this.index].content,
+                /**
+                 * The page's title
+                 */
+                title: this.pages[this.index].title,
+            },
+            /**
+             * The array of components in which your buttons are stored.
+             */
             components: [c],
         };
     }
