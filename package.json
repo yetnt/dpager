@@ -1,5 +1,5 @@
 {
-  "name": "dpager",
+  "name": "@fyleto/dpager",
   "version": "1.0.0",
   "description": "Discord.js Pager",
   "main": "dist/index.js",
