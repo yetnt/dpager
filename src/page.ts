@@ -1,6 +1,10 @@
 import {
     ButtonStyle,
- ButtonBuilder, EmbedBuilder, ActionRowBuilder,Colors} from "discord.js";
+    ButtonBuilder,
+    EmbedBuilder,
+    ActionRowBuilder,
+    Colors,
+} from "discord.js";
 class Page {
     /**
      * Title of the page. Will default to embed title if not given
@@ -43,6 +47,9 @@ interface PagerButton {
     style?: ButtonStyle;
     label?: string;
     emoji?: string;
+    /**
+     * Do not add this property either. Pager does this for you.
+     */
     disabled: boolean;
 }
 
@@ -59,8 +66,7 @@ const type = (arr: any[]): 0 | 1 | 2 =>
             ? 1
             : 0
         : 0;
-type keys = "prevPage" | "nextPage" | "nextMaxPage" | "prevMaxPage";
-export class Pager{
+export class Pager {
     /**
      * Array of pages. to access a page just use Pager.pages[index]
      */
@@ -104,10 +110,26 @@ export class Pager{
         },
     };
 
+    /**
+     * Customize the buttons used to page.
+     * @param i Object defining button properties.
+     */
     config(i: {
+        /**
+         * Button which goes to the next page
+         */
         nextPage?: PagerButton;
+        /**
+         * Button which goes to the previous page.
+         */
         prevPage?: PagerButton;
+        /**
+         * Button which skips to the last page
+         */
         nextMaxPage?: PagerButton;
+        /**
+         * Button which skips to the first page
+         */
         prevMaxPage?: PagerButton;
     }): void {
         function updateButton(
