@@ -5,18 +5,18 @@ Discord.js Pager
 # Install
 
 ```sh
-npm i @fyleto/dpager
-yarn add @fyleto/dpager
+npm i dpager
+yarn add dpager
 ```
 
 # Use
 
 ```js
-const { Pager } = require("@fyleto/dpager");
+const { Pager } = require("dpager");
 ```
 
 ```ts
-import { Pager } from "@fyleto/dpager";
+import { Pager } from "dpager";
 ```
 
 # Pager
@@ -28,7 +28,7 @@ Class that defines the page handler.
 -   `title` **(optional)**: Default title to use for pages that do not have it's own title
 
 ```js
-const { Pager } = require("@fyleto/dpager");
+const { Pager } = require("dpager");
 
 const pages = new Pager("shop");
 ```
@@ -175,7 +175,7 @@ pages.index;
 # Example
 
 ```js
-const { Pager } = require("@fyleto/dpager");
+const { Pager } = require("dpager");
 const { ComponentType, ButtonStyle } = require("discord.js");
 
 // place this code either in an "interactionCreate" event or any slash command event that takes interaction as a parameter
